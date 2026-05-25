@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif:ital,wght@0,300;0,400;0,700;1,400&family=Public+Sans:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Noto Serif", Georgia, serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-public: "Public Sans", sans-serif;
+  
+  --color-primary: #094cb2;
+  --color-accent: #6d5e00;
+  --color-neutral-light: #fcfcfc;
+  --color-surface-light: #f3f4f6;
+}
+
+/* Custom premium styles */
+body {
+  background-color: #fcfcfc;
+  color: #1c1c1c;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.premium-shadow {
+  box-shadow: 0 24px 40px rgba(0, 0, 0, 0.04);
+}
+
+.premium-shadow-hover {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.premium-shadow-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 32px 50px rgba(9, 76, 178, 0.06);
+}
+
+.ghost-input {
+  border: 1px solid rgba(9, 76, 178, 0.15);
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+}
+.ghost-input:focus {
+  border-color: #094cb2;
+  box-shadow: 0 0 0 3px rgba(9, 76, 178, 0.1);
+  outline: none;
+}
+
+.glass-sidebar {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Print Overrides to prevent layout leaks during print */
+@media print {
+  /* Sembunyikan sidebar navigasi, header halaman, dan tombol cetak */
+  aside,
+  header,
+  .print\:hidden,
+  button,
+  nav,
+  p.font-public.text-xs {
+    display: none !important;
+  }
+
+  /* Ratakan konten utama ke tepi kertas tanpa margin sidebar */
+  main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    background-color: white !important;
+    min-height: auto !important;
+    width: 100% !important;
+  }
+
+  body {
+    background-color: white !important;
+  }
+
+  /* Pastikan nota/struk digital melebar pas di kertas print */
+  .max-w-xl {
+    max-w: 100% !important;
+    width: 100% !important;
+  }
+
+  .premium-shadow {
+    box-shadow: none !important;
+  }
+}

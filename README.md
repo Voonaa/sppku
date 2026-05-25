@@ -1,59 +1,107 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🎓 SPPku — Sistem Pengelolaan Pembayaran SPP Premium
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi **SPPku** adalah platform modern yang dirancang khusus untuk mengelola administrasi pembayaran Sumbangan Pembinaan Pendidikan (SPP) secara efisien. Proyek ini dibangun dengan arsitektur *decoupled* profesional untuk memisahkan logika backend RESTful API dengan antarmuka frontend Single Page Application (SPA) yang interaktif dan dinamis.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🛠️ Tech Stack & Ekosistem
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Aplikasi ini menggunakan teknologi mutakhir industri untuk menjamin kecepatan, keamanan, dan keindahan visual:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Backend**: **Laravel 12** ( REST API murni, menggunakan struktur rute asinkron dan validasi data tangguh ).
+- **Frontend**: **React.js** ( SPA bertenaga **Vite** untuk kompilasi super cepat ).
+- **Desain & Gaya**: **Tailwind CSS v4** mengimplementasikan tema kustom **Alexandria — High-End Editorial** (tipografi premium, *No-Line Rule* tanpa border tajam, efek shadow difus, serta Glassmorphism sidebar).
+- **Basis Data**: **MySQL** (diintegrasikan melalui server Laragon).
+- **Pengujian**: **PHPUnit** (menjamin cakupan pengujian unit & fitur di sisi backend).
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## ✨ Fitur-Fitur Utama
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. **Autentikasi Multi-Role Otoritas**:
+   - Mendukung login untuk **Admin** (akses penuh kelola master data) dan **Petugas/Kasir** (akses transaksi pembayaran).
+   - Pengamanan request menggunakan *Custom Middleware* berbasis HTTP Header `X-Id-Petugas` yang terhindar dari kendala sesi CORS.
 
-## Laravel Sponsors
+2. **Manajemen Transaksi Kasir & Sinkronisasi Real-Time**:
+   - Halaman kasir dinamis dengan penghitungan uang kembalian secara interaktif.
+   - Fitur **Cepat Bayar** di mana kasir dapat melihat daftar siswa belum melunasi SPP dan langsung melakukan pengisian formulir dengan satu klik.
+   - Integrasi database backend dengan pengamanan `DB::transaction()` untuk menjamin integritas data (anti-corrupt) dan sinkronisasi instan ke tabel `cek_pembayaran`.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+3. **Master Data CRUD Terintegrasi Penuh**:
+   - CRUD lengkap untuk Data Siswa, Kelas, SPP, dan Petugas yang langsung terhubung ke basis data MySQL (tidak hilang saat halaman disegarkan).
+   - Fitur pencarian data siswa responsif secara langsung (*live search*).
 
-### Premium Partners
+4. **Desain Premium Alexandria — High-End Editorial**:
+   - Tipografi yang sangat elegan menggunakan Google Fonts: **Noto Serif** (judul), **Inter** (paragraf/tabel), dan **Public Sans** (label).
+   - Estetika modern tanpa border 1px yang kasar (*No-Line Rule*), melainkan menggunakan elevasi bayangan halus (diffuse shadow 4-6% opacity) dan warna latar belakang yang lembut.
+   - Halaman struk bukti bayar resmi yang siap dicetak (*print-ready layout* menggunakan perintah bawaan browser).
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## 🗄️ Arsitektur Basis Data (Keunikan Proyek)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Proyek ini mengelola 6 tabel relasional yang dirancang khusus untuk memenuhi kriteria penilaian ujian kompetensi:
 
-## Code of Conduct
+1. `tb_spp` — Tarif SPP per tahun.
+2. `tb_kelas` — Kelas akademik siswa.
+3. `tb_petugas` — Akun admin dan petugas penagihan.
+4. `tb_siswa` — Profil data siswa beserta relasi kelas/SPP.
+5. `tb_pembayaran` — Riwayat transaksi pembayaran SPP.
+6. `cek_pembayaran` — Tabel ringkasan status pembayaran aktif siswa.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+> [!IMPORTANT]
+> **Keunikan Primary Key VARCHAR**: 
+> Sesuai spesifikasi teknis ketat, seluruh model data utama menggunakan tipe data `VARCHAR` sebagai Primary Key (bukan Auto-Increment Integer). Proyek ini berhasil mengonfigurasinya secara kokoh dengan pengaturan `public $incrementing = false;` dan `protected $keyType = 'string';` di setiap Model Eloquent.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🚀 Panduan Instalasi Lokal
 
-## License
+### 1. Prasyarat Sistem
+- **Laragon / XAMPP** (dengan PHP 8.2 ke atas & MySQL).
+- **Composer** (untuk dependensi Laravel).
+- **Node.js & npm** (untuk frontend React).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 2. Konfigurasi Backend (Laravel)
+1. Salin berkas `.env.example` menjadi `.env` dan sesuaikan kredensial basis data Anda:
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=sppku
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+2. Jalankan instalasi dependensi dan migrasi basis data:
+   ```bash
+   composer install
+   php artisan migrate --seed
+   ```
+3. Jalankan server lokal backend Laravel:
+   ```bash
+   php artisan serve
+   ```
+   *Backend akan aktif di alamat `http://127.0.0.1:8000`.*
+
+### 3. Konfigurasi Frontend (React SPA)
+1. Masuk ke direktori frontend:
+   ```bash
+   cd frontend-sppku
+   ```
+2. Instal dependensi Node.js:
+   ```bash
+   npm install
+   ```
+3. Jalankan server pengembangan Vite lokal:
+   ```bash
+   npm run dev
+   ```
+   *Frontend akan aktif di alamat `http://localhost:5173`.*
+
+---
+
+## 🧪 Menjalankan Pengujian Backend
+Untuk memverifikasi kebenaran logika backend dan transaksi basis data:
+```bash
+php artisan test
+```

@@ -62,11 +62,11 @@ class PembayaranController extends Controller
 
             $pembayaran = Pembayaran::find($validated['id_pembayaran']);
             if (! $pembayaran) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Data pembayaran tidak ditemukan.',
-                    'data' => null,
-                ], 404);
+                // Buat record pembayaran baru secara dinamis jika belum terbuat di sistem
+                $pembayaran = new Pembayaran();
+                $pembayaran->id_pembayaran = $validated['id_pembayaran'];
+                $pembayaran->status = 'Belum Lunas';
+                $pembayaran->jumlah_bulan = '1';
             }
 
             $siswa = Siswa::find($validated['nisn']);
@@ -104,7 +104,7 @@ class PembayaranController extends Controller
                 $tglBayar,
                 $siswa
             ) {
-                $pembayaran->update([
+                $pembayaran->fill([
                     'nisn' => $validated['nisn'],
                     'id_spp' => $validated['id_spp'],
                     'nominal_bayar' => (string) $nominalSpp,
@@ -113,6 +113,7 @@ class PembayaranController extends Controller
                     'status' => $status,
                     'tgl_bayar' => $tglBayar,
                 ]);
+                $pembayaran->save();
 
                 CekPembayaran::updateOrCreate(
                     ['nisn' => $validated['nisn']],
@@ -126,7 +127,7 @@ class PembayaranController extends Controller
                     ]
                 );
 
-                return $pembayaran->fresh();
+                return $pembayaran;
             });
 
             return response()->json([

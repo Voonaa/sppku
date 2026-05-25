@@ -98,4 +98,52 @@ class PembayaranTest extends TestCase
             'status_pembayaran' => 'Sudah Lunas',
         ]);
     }
+
+    /**
+     * Skenario berhasil: transaksi pembayaran baru (dinamis non-eksisten) berhasil diproses dan status menjadi lunas.
+     */
+    public function test_store_transaksi_baru_berhasil_dinamis(): void
+    {
+        Spp::create([
+            'id_spp' => 'SPP03',
+            'tahun' => 2024,
+            'nominal' => '300000',
+        ]);
+
+        Siswa::create([
+            'nisn' => '0011223346',
+            'nis' => '1003',
+            'nama' => 'Chandra Wijaya',
+            'id_kelas' => 'KLS02',
+            'id_spp' => 'SPP03',
+            'no_telp' => '081234567892',
+        ]);
+
+        $response = $this->postJson('/api/pembayaran/transaksi', [
+            'id_pembayaran' => 'PAY-DYNAMIC-999',
+            'nisn' => '0011223346',
+            'id_spp' => 'SPP03',
+            'nominal_bayar' => 300000,
+            'jumlah_bayar' => 300000,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => true,
+                'message' => 'Transaksi pembayaran berhasil diproses.',
+            ])
+            ->assertJsonPath('data.status', 'Sudah Lunas')
+            ->assertJsonPath('data.kembalian', '0');
+
+        $this->assertDatabaseHas('tb_pembayaran', [
+            'id_pembayaran' => 'PAY-DYNAMIC-999',
+            'status' => 'Sudah Lunas',
+            'kembalian' => '0',
+        ]);
+
+        $this->assertDatabaseHas('cek_pembayaran', [
+            'nisn' => '0011223346',
+            'status_pembayaran' => 'Sudah Lunas',
+        ]);
+    }
 }
