@@ -110,6 +110,15 @@ class KelasController extends Controller
                     'message' => 'Kelas tidak ditemukan.'
                 ], 404);
             }
+
+            // Periksa apakah kelas masih digunakan oleh siswa
+            if ($kelas->siswa()->exists()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Data kelas tidak dapat dihapus karena masih memiliki data siswa aktif.'
+                ], 422);
+            }
+
             $kelas->delete();
             return response()->json([
                 'status' => true,

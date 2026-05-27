@@ -11,6 +11,8 @@ export default function DataKelas() {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [selectedKelas, setSelectedKelas] = useState({ id_kelas: '', nama_kelas: '', komp_keahlian: '' });
+  const [notification, setNotification] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   const fetchKelas = async () => {
     try {
@@ -47,7 +49,7 @@ export default function DataKelas() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!selectedKelas.id_kelas || !selectedKelas.nama_kelas) {
-      alert('ID Kelas dan Nama Kelas wajib diisi!');
+      setNotification({ type: 'error', message: 'ID Kelas dan Nama Kelas wajib diisi!' });
       return;
     }
 
@@ -59,20 +61,25 @@ export default function DataKelas() {
       }
       await fetchKelas();
       setShowModal(false);
+      setNotification({ type: 'success', message: 'Data kelas berhasil disimpan!' });
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal menyimpan data kelas ke database.');
+      setNotification({ type: 'error', message: err.response?.data?.message || 'Gagal menyimpan data kelas ke database.' });
     }
   };
 
-  const handleDelete = async (id_kelas) => {
-    if (confirm('Apakah Anda yakin ingin menghapus kelas ini?')) {
-      try {
-        await api.delete(`/kelas/${id_kelas}`);
-        await fetchKelas();
-      } catch (err) {
-        alert(err.response?.data?.message || 'Gagal menghapus kelas dari database.');
+  const handleDelete = (id_kelas) => {
+    setConfirmDialog({
+      message: 'Apakah Anda yakin ingin menghapus kelas ini?',
+      onConfirm: async () => {
+        try {
+          await api.delete(`/kelas/${id_kelas}`);
+          await fetchKelas();
+          setNotification({ type: 'success', message: 'Data kelas berhasil dihapus!' });
+        } catch (err) {
+          setNotification({ type: 'error', message: err.response?.data?.message || 'Gagal menghapus kelas dari database.' });
+        }
       }
-    }
+    });
   };
 
   return (
@@ -191,6 +198,80 @@ export default function DataKelas() {
           </div>
         </div>
       )}
+      {notification && (
+        <div className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-md p-8 w-full max-w-sm premium-shadow text-center animate-scaleUp">
+            <div className="mb-4">
+              {notification.type === 'error' ? (
+                <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+              ) : (
+                <div className="w-12 h-12 bg-blue-50 text-primary rounded-full flex items-center justify-center mx-auto">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
+              )}
+            </div>
+            <h4 className="font-serif text-lg text-neutral-800 font-medium mb-2">
+              {notification.type === 'error' ? 'Pemberitahuan' : 'Sukses'}
+            </h4>
+            <p className="font-public text-xs text-neutral-500 mb-6 leading-relaxed">
+              {notification.message}
+            </p>
+            <button 
+              onClick={() => setNotification(null)}
+              className="font-public text-xs font-semibold text-white bg-neutral-900 px-6 py-2.5 rounded-md hover:bg-neutral-800 transition-colors w-full"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {confirmDialog && (
+        <div className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-md p-8 w-full max-w-sm premium-shadow text-center animate-scaleUp">
+            <div className="mb-4">
+              <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+            </div>
+            <h4 className="font-serif text-lg text-neutral-800 font-medium mb-2">Konfirmasi Hapus</h4>
+            <p className="font-public text-xs text-neutral-500 mb-6 leading-relaxed">
+              {confirmDialog.message}
+            </p>
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => setConfirmDialog(null)}
+                className="font-public text-xs text-neutral-500 hover:underline flex-1 py-2.5"
+              >
+                BATAL
+              </button>
+              <button 
+                onClick={() => {
+                  confirmDialog.onConfirm();
+                  setConfirmDialog(null);
+                }}
+                className="font-public text-xs font-semibold text-white bg-gradient-to-r from-red-600 to-red-500 px-6 py-2.5 rounded-md premium-shadow hover:opacity-90 flex-1"
+              >
+                YA, HAPUS
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

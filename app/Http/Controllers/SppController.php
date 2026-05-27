@@ -110,6 +110,15 @@ class SppController extends Controller
                     'message' => 'Data SPP tidak ditemukan.'
                 ], 404);
             }
+
+            // Periksa relasi sebelum menghapus
+            if ($spp->siswa()->exists() || $spp->pembayaran()->exists()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Tarif SPP tidak dapat dihapus karena masih digunakan oleh data siswa atau memiliki riwayat transaksi pembayaran.'
+                ], 422);
+            }
+
             $spp->delete();
             return response()->json([
                 'status' => true,

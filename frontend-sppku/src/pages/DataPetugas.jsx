@@ -11,6 +11,8 @@ export default function DataPetugas() {
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [selectedPetugas, setSelectedPetugas] = useState({ id_petugas: '', username: '', password: '', nama_petugas: '', level: 'petugas' });
+  const [notification, setNotification] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
 
   const fetchPetugas = async () => {
     try {
@@ -47,14 +49,14 @@ export default function DataPetugas() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!selectedPetugas.id_petugas || !selectedPetugas.username || !selectedPetugas.nama_petugas) {
-      alert('ID Petugas, Username, dan Nama Petugas wajib diisi!');
+      setNotification({ type: 'error', message: 'ID Petugas, Username, dan Nama Petugas wajib diisi!' });
       return;
     }
 
     try {
       if (modalMode === 'add') {
         if (!selectedPetugas.password) {
-          alert('Kata Sandi wajib diisi untuk petugas baru!');
+          setNotification({ type: 'error', message: 'Kata Sandi wajib diisi untuk petugas baru!' });
           return;
         }
         await api.post('/petugas', selectedPetugas);
@@ -63,20 +65,37 @@ export default function DataPetugas() {
       }
       await fetchPetugas();
       setShowModal(false);
+      setNotification({ type: 'success', message: 'Data petugas berhasil disimpan!' });
     } catch (err) {
-      alert(err.response?.data?.message || 'Gagal menyimpan data petugas ke database.');
+      let errMsg = 'Gagal menyimpan data petugas ke database.';
+      if (err.response?.data) {
+        if (err.response.data.data && typeof err.response.data.data === 'object') {
+          const errorDetails = err.response.data.data;
+          const firstKey = Object.keys(errorDetails)[0];
+          if (firstKey && errorDetails[firstKey]) {
+            errMsg = errorDetails[firstKey][0];
+          }
+        } else if (err.response.data.message) {
+          errMsg = err.response.data.message;
+        }
+      }
+      setNotification({ type: 'error', message: errMsg });
     }
   };
 
-  const handleDelete = async (id_petugas) => {
-    if (confirm('Apakah Anda yakin ingin menghapus petugas ini?')) {
-      try {
-        await api.delete(`/petugas/${id_petugas}`);
-        await fetchPetugas();
-      } catch (err) {
-        alert(err.response?.data?.message || 'Gagal menghapus petugas dari database.');
+  const handleDelete = (id_petugas) => {
+    setConfirmDialog({
+      message: 'Apakah Anda yakin ingin menghapus petugas ini?',
+      onConfirm: async () => {
+        try {
+          await api.delete(`/petugas/${id_petugas}`);
+          await fetchPetugas();
+          setNotification({ type: 'success', message: 'Data petugas berhasil dihapus!' });
+        } catch (err) {
+          setNotification({ type: 'error', message: err.response?.data?.message || 'Gagal menghapus petugas dari database.' });
+        }
       }
-    }
+    });
   };
 
   return (
@@ -128,12 +147,14 @@ export default function DataPetugas() {
                   >
                     UBAH
                   </button>
-                  <button 
-                    onClick={() => handleDelete(petugas.id_petugas)}
-                    className="font-public text-[10px] uppercase font-semibold text-red-600 hover:underline"
-                  >
-                    HAPUS
-                  </button>
+                  {petugas.level !== 'admin' && (
+                    <button 
+                      onClick={() => handleDelete(petugas.id_petugas)}
+                      className="font-public text-[10px] uppercase font-semibold text-red-600 hover:underline"
+                    >
+                      HAPUS
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -225,6 +246,80 @@ export default function DataPetugas() {
           </div>
         </div>
       )}
+      {notification && (
+        <div className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-md p-8 w-full max-w-sm premium-shadow text-center animate-scaleUp">
+            <div className="mb-4">
+              {notification.type === 'error' ? (
+                <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+              ) : (
+                <div className="w-12 h-12 bg-blue-50 text-primary rounded-full flex items-center justify-center mx-auto">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
+              )}
+            </div>
+            <h4 className="font-serif text-lg text-neutral-800 font-medium mb-2">
+              {notification.type === 'error' ? 'Pemberitahuan' : 'Sukses'}
+            </h4>
+            <p className="font-public text-xs text-neutral-500 mb-6 leading-relaxed">
+              {notification.message}
+            </p>
+            <button 
+              onClick={() => setNotification(null)}
+              className="font-public text-xs font-semibold text-white bg-neutral-900 px-6 py-2.5 rounded-md hover:bg-neutral-800 transition-colors w-full"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {confirmDialog && (
+        <div className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-md p-8 w-full max-w-sm premium-shadow text-center animate-scaleUp">
+            <div className="mb-4">
+              <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+            </div>
+            <h4 className="font-serif text-lg text-neutral-800 font-medium mb-2">Konfirmasi Hapus</h4>
+            <p className="font-public text-xs text-neutral-500 mb-6 leading-relaxed">
+              {confirmDialog.message}
+            </p>
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => setConfirmDialog(null)}
+                className="font-public text-xs text-neutral-500 hover:underline flex-1 py-2.5"
+              >
+                BATAL
+              </button>
+              <button 
+                onClick={() => {
+                  confirmDialog.onConfirm();
+                  setConfirmDialog(null);
+                }}
+                className="font-public text-xs font-semibold text-white bg-gradient-to-r from-red-600 to-red-500 px-6 py-2.5 rounded-md premium-shadow hover:opacity-90 flex-1"
+              >
+                YA, HAPUS
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

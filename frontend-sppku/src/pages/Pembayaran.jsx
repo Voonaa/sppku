@@ -17,6 +17,7 @@ export default function Pembayaran() {
   const [jumlahBayar, setJumlahBayar] = useState('');
   const [kembalian, setKembalian] = useState(0);
   const [siswaDb, setSiswaDb] = useState({});
+  const [notification, setNotification] = useState(null);
 
   // Muat data siswa dari database riil Laravel
   useEffect(() => {
@@ -74,11 +75,11 @@ export default function Pembayaran() {
   const handleSubmitTransaksi = async (e) => {
     e.preventDefault();
     if (!siswa) {
-      alert('Masukkan NISN yang terdaftar terlebih dahulu!');
+      setNotification({ type: 'error', message: 'Masukkan NISN yang terdaftar terlebih dahulu!' });
       return;
     }
     if (parseInt(jumlahBayar) < nominalSpp) {
-      alert('Jumlah bayar kurang dari nominal tarif SPP!');
+      setNotification({ type: 'error', message: 'Jumlah bayar kurang dari nominal tarif SPP!' });
       return;
     }
 
@@ -115,7 +116,7 @@ export default function Pembayaran() {
         navigate('/detail-pembayaran', { state: { transaksi: payloadTransaksi } });
       }
     } catch (err) {
-      alert('Gagal memproses transaksi ke basis data Laravel. Pastikan data spp/siswa valid.');
+      setNotification({ type: 'error', message: 'Gagal memproses transaksi ke basis data Laravel. Pastikan data spp/siswa valid.' });
     }
   };
 
@@ -301,6 +302,43 @@ export default function Pembayaran() {
           </table>
         </div>
       </div>
+
+      {notification && (
+        <div className="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-md p-8 w-full max-w-sm premium-shadow text-center animate-scaleUp">
+            <div className="mb-4">
+              {notification.type === 'error' ? (
+                <div className="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                </div>
+              ) : (
+                <div className="w-12 h-12 bg-blue-50 text-primary rounded-full flex items-center justify-center mx-auto">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                </div>
+              )}
+            </div>
+            <h4 className="font-serif text-lg text-neutral-800 font-medium mb-2">
+              {notification.type === 'error' ? 'Pemberitahuan' : 'Sukses'}
+            </h4>
+            <p className="font-public text-xs text-neutral-500 mb-6 leading-relaxed">
+              {notification.message}
+            </p>
+            <button 
+              onClick={() => setNotification(null)}
+              className="font-public text-xs font-semibold text-white bg-neutral-900 px-6 py-2.5 rounded-md hover:bg-neutral-800 transition-colors w-full"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

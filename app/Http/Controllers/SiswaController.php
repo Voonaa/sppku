@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class SiswaController
@@ -71,17 +72,18 @@ class SiswaController extends Controller
             $validator = Validator::make($request->all(), [
                 'nisn' => 'required|string|max:10|unique:tb_siswa,nisn',
                 'nis' => 'nullable|string|max:8',
-                'nama' => 'required|string|max:50',
+                'nama' => 'required|string|max:50|regex:/^[a-zA-Z\s\']+$/',
                 'id_kelas' => 'nullable|string|exists:tb_kelas,id_kelas',
                 'alamat' => 'nullable|string',
                 'no_telp' => 'nullable|string|max:13',
                 'id_spp' => 'nullable|string|exists:tb_spp,id_spp',
             ], [
                 'nisn.required' => 'NISN wajib diisi.',
-                'nisn.unique' => 'NISN sudah terdaftar.',
+                'nisn.unique' => 'Gagal! NISN tersebut sudah terdaftar di dalam sistem.',
                 'nisn.max' => 'NISN maksimal 10 karakter.',
                 'nama.required' => 'Nama wajib diisi.',
                 'nama.max' => 'Nama maksimal 50 karakter.',
+                'nama.regex' => 'Format nama tidak valid, hanya boleh berisi huruf dan spasi.',
                 'id_kelas.exists' => 'Kelas tidak ditemukan.',
                 'id_spp.exists' => 'SPP tidak ditemukan.',
             ]);
@@ -183,15 +185,18 @@ class SiswaController extends Controller
 
             // Validasi Input untuk update. NISN tidak diubah di sini karena primary key varchar.
             $validator = Validator::make($request->all(), [
+                'nisn' => 'sometimes|required|string|max:10|unique:tb_siswa,nisn,' . $nisn . ',nisn',
                 'nis' => 'nullable|string|max:8',
-                'nama' => 'sometimes|required|string|max:50',
+                'nama' => 'sometimes|required|string|max:50|regex:/^[a-zA-Z\s\']+$/',
                 'id_kelas' => 'nullable|string|exists:tb_kelas,id_kelas',
                 'alamat' => 'nullable|string',
                 'no_telp' => 'nullable|string|max:13',
                 'id_spp' => 'nullable|string|exists:tb_spp,id_spp',
             ], [
+                'nisn.unique' => 'Gagal! NISN tersebut sudah terdaftar di dalam sistem.',
                 'nama.required' => 'Nama wajib diisi.',
                 'nama.max' => 'Nama maksimal 50 karakter.',
+                'nama.regex' => 'Format nama tidak valid, hanya boleh berisi huruf dan spasi.',
                 'id_kelas.exists' => 'Kelas tidak ditemukan.',
                 'id_spp.exists' => 'SPP tidak ditemukan.',
             ]);
@@ -254,7 +259,11 @@ class SiswaController extends Controller
                 ], 404);
             }
 
-            $siswa->delete();
+            DB::transaction(function () use ($siswa) {
+                $siswa->cekPembayaran()->delete();
+                $siswa->pembayaran()->delete();
+                $siswa->delete();
+            });
 
             return response()->json([
                 'status' => true,

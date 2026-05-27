@@ -123,7 +123,7 @@ export default function MainLayout({ children }) {
             </div>
             <div className="ml-3">
               <p className="text-xs font-semibold text-neutral-700 leading-none font-public">Administrator</p>
-              <p className="text-[10px] text-neutral-400 leading-none mt-1 font-public font-light">Ujian Sertifikasi</p>
+              <p className="text-[10px] text-neutral-400 leading-none mt-1 font-public font-light">-</p>
             </div>
           </div>
           
